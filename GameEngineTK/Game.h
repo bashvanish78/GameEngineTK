@@ -62,4 +62,7 @@ private:
 
     // Rendering loop timer.
     DX::StepTimer                                   m_timer;
+
+	//•Ï”’Ç‰Á‚ª‰Â”\
+
 };
