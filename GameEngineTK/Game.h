@@ -11,6 +11,7 @@
 #include <Effects.h>
 #include <CommonStates.h>
 #include <SimpleMath.h>
+#include <Model.h>
 
 
 // A basic game implementation that creates a D3D11 device and
@@ -89,4 +90,11 @@ private:
 	//デバッグカメラ
 	std::unique_ptr<DebugCamera> m_debugcamera;
 
+	//エフェクトファクトリ
+	std::unique_ptr<DirectX::EffectFactory> m_factory;
+	//天球モデル
+	std::unique_ptr<DirectX::Model> m_modelSkyDome;
+
+	//モデル地面
+	std::unique_ptr<DirectX::Model> m_modelGround;
 };
