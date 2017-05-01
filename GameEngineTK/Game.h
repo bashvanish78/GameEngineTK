@@ -97,4 +97,16 @@ private:
 
 	//モデル地面
 	std::unique_ptr<DirectX::Model> m_modelGround;
+
+	//モデル地面
+	std::unique_ptr<DirectX::Model> m_modelGround2[10000];
+
+	//モデル球
+	std::unique_ptr<DirectX::Model> m_modelBall[20];
+
+	//球のワールド行列
+	DirectX::SimpleMath::Matrix m_worldBall[20];
+
+	//地面2のワールド行列
+	DirectX::SimpleMath::Matrix m_worldGround2[10000];
 };
