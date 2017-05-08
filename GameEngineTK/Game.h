@@ -12,6 +12,7 @@
 #include <CommonStates.h>
 #include <SimpleMath.h>
 #include <Model.h>
+#include <Keyboard.h>
 
 
 // A basic game implementation that creates a D3D11 device and
@@ -98,15 +99,42 @@ private:
 	//モデル地面
 	std::unique_ptr<DirectX::Model> m_modelGround;
 
+	//モデルティーポット
+	std::unique_ptr<DirectX::Model> m_modelTeapot[20];
+
+	//キャタピラのモデル
+	std::unique_ptr<DirectX::Model> m_modelCaterpiller;
+
 	//モデル地面
-	std::unique_ptr<DirectX::Model> m_modelGround2[10000];
+	//std::unique_ptr<DirectX::Model> m_modelGround2[10000];
 
 	//モデル球
-	std::unique_ptr<DirectX::Model> m_modelBall[20];
+	//std::unique_ptr<DirectX::Model> m_modelBall[20];
 
 	//球のワールド行列
-	DirectX::SimpleMath::Matrix m_worldBall[20];
+	//DirectX::SimpleMath::Matrix m_worldBall[20];
+
+	//ティーポットのワールド行列
+	DirectX::SimpleMath::Matrix m_worldTeapot[20];
+
+	//キャタピラのワールド行列
+	DirectX::SimpleMath::Matrix m_worldCaterpiller;
 
 	//地面2のワールド行列
-	DirectX::SimpleMath::Matrix m_worldGround2[10000];
+	//DirectX::SimpleMath::Matrix m_worldGround2[10000];
+
+	float m_dir[20];
+	float m_distance[20];
+	int m_count;
+
+	std::unique_ptr<DirectX::Keyboard> m_keyboard;
+
+	//自機の座標
+	float tank_rot;
+	DirectX::SimpleMath::Vector3 tank_pos;
+
+	/*DirectX::SimpleMath::Vector3 m_lerp[20];
+
+	DirectX::SimpleMath::Vector3 Lerp(DirectX::SimpleMath::Vector3 startPosition, DirectX::SimpleMath::Vector3 targetPosition, float t, float v);*/
+	//float linearity(float time);
 };
