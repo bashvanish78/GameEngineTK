@@ -170,6 +170,12 @@ void Game::Initialize(HWND window, int width, int height)
 	m_keyboard = std::make_unique<Keyboard>();
 
 	tank_rot = 0.0f;
+
+
+	tank_pos = Vector3(0.0f, 0.0f, 30.0f);
+
+	//カメラ生成
+	m_camera = std::make_unique<FollowCamera>(m_outputWidth,m_outputHeight);
 }
 
 // Executes the basic game loop.
@@ -187,10 +193,10 @@ void Game::Tick()
 // Updates the world.
 void Game::Update(DX::StepTimer const& timer)
 {
-    float elapsedTime = float(timer.GetElapsedSeconds());
+	float elapsedTime = float(timer.GetElapsedSeconds());
 
-    // TODO: Add your game logic here.
-    elapsedTime;
+	// TODO: Add your game logic here.
+	elapsedTime;
 
 	//////////////////////////
 	//毎フレームの処理を書く//
@@ -285,7 +291,7 @@ void Game::Update(DX::StepTimer const& timer)
 	if (kb.A)
 	{
 		//自機のベクトル
-		float rot = -0.1;
+		float rot = 0.1;
 		//自機の亜票を移動
 		tank_rot += rot;
 	}
@@ -293,7 +299,7 @@ void Game::Update(DX::StepTimer const& timer)
 	if (kb.D)
 	{
 		//自機のベクトル
-		float rot = 0.1;
+		float rot = -0.1;
 		//自機の亜票を移動
 		tank_rot += rot;
 	}
@@ -304,7 +310,7 @@ void Game::Update(DX::StepTimer const& timer)
 		//自機のベクトル
 		Vector3 moveV(0.0f, 0.0f, -0.1f);
 		//移動ベクトルを自機の角度分回転
-		//Matrix rotmat = Matrix::CreateRotationY(tank_rot);
+		Matrix rotmat = Matrix::CreateRotationY(tank_rot);
 		moveV = Vector3::TransformNormal(moveV, rotmat);
 		//自機の亜票を移動
 		tank_pos += moveV;
@@ -315,7 +321,8 @@ void Game::Update(DX::StepTimer const& timer)
 		//自機のベクトル
 		Vector3 moveV(0.0f, 0.0f, 0.1f);
 		//移動ベクトルを自機の角度分回転
-		moveV = Vector3::TransformNormal(moveV, m_worldCaterpiller);
+		Matrix rotmat = Matrix::CreateRotationY(tank_rot);
+		moveV = Vector3::TransformNormal(moveV, rotmat);
 		//自機の亜票を移動
 		tank_pos += moveV;
 	}
@@ -328,8 +335,26 @@ void Game::Update(DX::StepTimer const& timer)
 		//Y軸回転
 		Matrix rotmat = Matrix::CreateRotationY(tank_rot);
 		//平行移動行列をワールド座標にコピー
-		m_worldCaterpiller = rotmat * transmat ;
+		m_worldCaterpiller = rotmat * transmat;
 	}
+
+	//Vector3 tank_pos2(tank_pos.x, tank_pos.y + 2.5f, tank_pos.z + 5.0f);
+
+
+	{//自機に追従するカメラ
+
+		m_camera->SetTargetPos(tank_pos);
+		m_camera->SetTargetAngle(tank_rot);
+
+		//カメラ更新
+		//m_camera->SetEyePos(tank_pos);
+		//m_camera->SetRefPos(Vector3(0.0f, 0.0f, -100.0f));
+
+		m_camera->Update();
+		m_view = m_camera->GetView();
+		m_proj = m_camera->GetProjection();
+	}
+
 
 }
 
@@ -363,14 +388,39 @@ void Game::Render()
 	//	Vector3(0.f, 0.f, 20.f),	//カメラ視点
 	//	Vector3(0,0,0),			//カメラ参照点
 	//	Vector3(0,1,0));		//上方向ベクトル
-	m_view = m_debugcamera->GetCameraMatrix();
+	//m_view = m_debugcamera->GetCameraMatrix();
 
-	//射影行列生成
-	m_proj = Matrix::CreatePerspectiveFieldOfView(
-		XM_PI / 4.f,			//視野角(上下方向)
-		float(m_outputWidth) / float(m_outputHeight),	//アスペクト比
-		0.1f,	//ニアクリップ
-		500.f);	//ファークリップ
+	////カメラの位置(視点座標)
+	//Vector3 eyepos(0.0f, 0.0f, 5.0f);
+	////カメラの見ている先(注視点/参照点/注目点)
+	//Vector3 refpos(0.0f, 0.0f, 0.0f);
+	////カメラの上方向ベクトル
+	//static float angle = 0.0f;
+	//angle += 0.1f;
+
+	//Vector3 upvec(cosf(angle), sinf(angle), 0);
+
+	//upvec.Normalize();
+
+	//m_view = Matrix::CreateLookAt(eyepos, refpos, upvec);
+
+	//垂直方向視野角
+	//float fovY = XMConvertToRadians(60.0f);
+	////アスペクト比(横縦の比率)
+	//float aspect = (float)m_outputWidth/m_outputHeight;
+	////ニアクリップ(手前の表示限界)
+	//float nearclip = 0.1f;
+	////ファークリップ(奥の表示限界)
+	//float farclip = 1000.0f;
+	//
+
+
+	////射影行列生成
+	//m_proj = Matrix::CreatePerspectiveFieldOfView(
+	//	fovY,			//視野角(上下方向)
+	//	aspect,	//アスペクト比
+	//	nearclip,	//ニアクリップ
+	//	farclip);	//ファークリップ
 
 	uint16_t indices[] =
 	{

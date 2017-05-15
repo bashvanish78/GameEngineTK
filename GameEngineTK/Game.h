@@ -6,6 +6,7 @@
 
 #include "StepTimer.h"
 #include "DebugCamera.h"
+#include "FollowCamera.h"
 #include <PrimitiveBatch.h>
 #include <VertexTypes.h>
 #include <Effects.h>
@@ -137,4 +138,8 @@ private:
 
 	DirectX::SimpleMath::Vector3 Lerp(DirectX::SimpleMath::Vector3 startPosition, DirectX::SimpleMath::Vector3 targetPosition, float t, float v);*/
 	//float linearity(float time);
+
+	//カメラのオブジェクト
+	std::unique_ptr<FollowCamera>m_camera;
+
 };
