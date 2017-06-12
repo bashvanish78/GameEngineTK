@@ -48,6 +48,16 @@ void Game::Initialize(HWND window, int width, int height)
 	//各種初期化はこの辺に書く//
 	////////////////////////////
 	
+	m_keyboard = std::make_unique<Keyboard>();
+
+	//カメラ生成
+	m_camera = std::make_unique<FollowCamera>(m_outputWidth, m_outputHeight);
+	//カメラにキーボードをセット
+	m_camera->SetKeyBoard(m_keyboard.get());
+
+	//3Dオブジェクトの静的メンバ変数を初期化
+	Obj3d::InitializeStatic(m_d3dDevice, m_d3dContext, m_camera.get());
+
 	m_batch = std::make_unique<PrimitiveBatch<VertexPositionNormal>>(m_d3dContext.Get());
 
 	m_effect = std::make_unique<BasicEffect>(m_d3dDevice.Get());
@@ -77,105 +87,31 @@ void Game::Initialize(HWND window, int width, int height)
 	//テクスチャのパスを指定
 	m_factory->SetDirectory(L"Resources");
 	//モデル作成
-	m_modelSkyDome = Model::CreateFromCMO(m_d3dDevice.Get(), (L"Resources/skydome.cmo"), *m_factory);
-	m_modelGround = Model::CreateFromCMO(m_d3dDevice.Get(), (L"Resources/ground200m.cmo"), *m_factory);
-	m_modelCaterpiller = Model::CreateFromCMO(m_d3dDevice.Get(), (L"Resources/caterpillar.cmo"), *m_factory);
-
-	//for (int i = 0; i < 20; i++)
-	//{
-		//m_modelBall[i] = Model::CreateFromCMO(m_d3dDevice.Get(), (L"Resources/ball.cmo"), *m_factory);
-	//}
-
-	for (int i = 0; i < 20; i++)
-	{
-		m_modelTeapot[i] = Model::CreateFromCMO(m_d3dDevice.Get(), (L"Resources/teapot.cmo"), *m_factory);
-	}
-
-	//for (int i = 0; i < 10000; i++)
-	//{
-	//	m_modelGround2[i] = Model::CreateFromCMO(m_d3dDevice.Get(), (L"Resources/ground1m.cmo"), *m_factory);
-	//}
-
-
-	for (int i = 0; i < 20; i++)
-	{
-		m_dir[i] = XMConvertToRadians(rand() % 360);
-		m_distance[i] = rand() % 100;
-	}
+	m_ObjSkyDome.LoadModel(L"Resources/skydome.cmo");
+	m_ObjGround.LoadModel(L"Resources/ground200m.cmo");
 
 	m_count = 0;
-
-	//球の位置初期化
-	//内側
-	//for (int i = 0; i < 10; i++)
-	//{
-	//	//スケーリング
-	//	Matrix scalemat = Matrix::CreateScale(2.0f);
-	//	//平行移動
-	//	Matrix transmat = Matrix::CreateTranslation(0.0f, 0.0f, 20.0f);
-	//	//ロール
-	//	Matrix rotmatz = Matrix::CreateRotationZ(XM_PIDIV4);
-	//	//ピッチ(仰角)
-	//	Matrix rotmatx = Matrix::CreateRotationX(XM_PIDIV4);
-	//	//ヨー(方位角)
-	//	Matrix rotmaty = Matrix::CreateRotationY(XM_2PI / 10 * (1 + i));
-	//	//回転行列の合成
-	//	Matrix rotmat = rotmaty;// *rotmatx * rotmaty;
-	//							//ワールド行列の合成(SRT)このかけ順が安定
-	//	m_worldBall[i] = scalemat * transmat * rotmat;
-	//}
-	////外側
-	//for (int i = 10; i < 20; i++)
-	//{
-	//	//スケーリング
-	//	Matrix scalemat = Matrix::CreateScale(2.0f);
-	//	//平行移動
-	//	Matrix transmat = Matrix::CreateTranslation(0.0f, 0.0f, 40.0f);
-	//	//ロール
-	//	Matrix rotmatz = Matrix::CreateRotationZ(XM_PIDIV4);
-	//	//ピッチ(仰角)
-	//	Matrix rotmatx = Matrix::CreateRotationX(XM_PIDIV4);
-	//	//ヨー(方位角)
-	//	Matrix rotmaty = Matrix::CreateRotationY(XM_2PI / 10 * (1 + i - 10));
-	//	//回転行列の合成
-	//	Matrix rotmat = rotmaty;// *rotmatx * rotmaty;
-	//							//ワールド行列の合成(SRT)このかけ順が安定
-	//	m_worldBall[i] = scalemat * transmat * rotmat;
-	//}
-	//
-	////地面2
-	//for (int i = 0; i < 100; i++)
-	//{
-	//	for (int j = 0; j < 100; j++)
-	//	{
-	//		//スケーリング
-	//		Matrix scalemat = Matrix::CreateScale(1.0f);
-	//		//平行移動
-	//		Matrix transmat = Matrix::CreateTranslation(1.0f * j - 50, 0.0f, i - 50);
-	//		//ロール
-	//		Matrix rotmatz = Matrix::CreateRotationZ(0);
-	//		//ピッチ(仰角)
-	//		Matrix rotmatx = Matrix::CreateRotationX(0);
-	//		//ヨー(方位角)
-	//		Matrix rotmaty = Matrix::CreateRotationY(0);
-	//		//回転行列の合成
-	//		Matrix rotmat = rotmatz *rotmatx * rotmaty;
-	//		//ワールド行列の合成(SRT)このかけ順が安定
-	//		m_worldGround2[j+(i*100)] = scalemat * rotmat* transmat;
-	//		//m_worldBall[i] = scalemat * transmat * rotmat;
-	//		//m_modelGround2[j + (i * 400)] = transmat;
-	//	}
-	//}
-
-	m_keyboard = std::make_unique<Keyboard>();
-
+	
 	tank_rot = 0.0f;
 
+	tank_pos = Vector3(0.0f, 0.0f, 0.0f);
 
-	tank_pos = Vector3(0.0f, 0.0f, 30.0f);
+	//プレイヤーの生成
+	m_Player = std::make_unique<Player>(m_keyboard.get());
+	m_Player->Initialize();
 
-	//カメラ生成
-	m_camera = std::make_unique<FollowCamera>(m_outputWidth,m_outputHeight);
+	m_camera->SetPlayer(m_Player.get());
+
+	// 敵の生成
+	int enemyNum = rand() % 10 + 1;
+	m_Enemies.resize(enemyNum);
+
+	for (int i = 0; i < enemyNum; i++)
+	{
+		m_Enemies[i] = std::make_unique<Enemy>(m_keyboard.get());
+		m_Enemies[i]->Initialize();
+	}
+
 }
 
 // Executes the basic game loop.
@@ -201,45 +137,10 @@ void Game::Update(DX::StepTimer const& timer)
 	//////////////////////////
 	//毎フレームの処理を書く//
 	//////////////////////////
+
 	m_debugcamera->Update();
 
-	////ティーポットの回転
-	//for (int i = 0; i < 20; i++)
-	//{
-	//	//平行移動
-	//	Matrix transmat = Matrix::CreateTranslation(cosf(m_dir[i])*m_distance[i], 0.0f, sinf(m_dir[i])*m_distance[i]);
-	//	//回転
-	//	Matrix rotmaty = Matrix::CreateRotationY(XMConvertToRadians(-3.0f));
-	//	m_worldTeapot[i] = transmat * rotmaty;
-	//	//m_worldTeapot[i] *= ;
-	//}
-
-
-
-
 	m_count++;
-	//ティーポット
-	for (int i = 0; i < 20; i++)
-	{
-		//m_lerp[i] = Lerp(Vector3(cosf(m_dir[i])*m_distance[i], 0.0f, sinf(m_dir[i])*m_distance[i]), Vector3(0.0f,0.0f,0.0f), 10.0f, linearity(10.0f));
-		float val = (sinf(m_count / 20.0f) + 1.0f) * 2.5f;
-		//スケーリング
-		Matrix scalemat = Matrix::CreateScale(val);
-		//平行移動
-		//Matrix transmat = Matrix::CreateTranslation(cosf(m_dir[i])*m_distance[i]+m_lerp[i].x, 0.0f+m_lerp[i].y, sinf(m_dir[i])*m_distance[i]+m_lerp[i].z);
-		//Matrix transmat = Matrix::CreateTranslation(0.0f,0.0f,0.0f);
-		Matrix transmat = Matrix::CreateTranslation(cosf(m_dir[i])*m_distance[i], 0.0f, sinf(m_dir[i])*m_distance[i]);
-		//ロール
-		Matrix rotmatz = Matrix::CreateRotationZ(0);
-		//ピッチ(仰角)
-		Matrix rotmatx = Matrix::CreateRotationX(0);
-		//ヨー(方位角)
-		Matrix rotmaty = Matrix::CreateRotationY(m_count / 10.0f);
-		//回転行列の合成
-		Matrix rotmat = rotmaty;// *rotmatx * rotmaty;
-								//ワールド行列の合成(SRT)このかけ順が安定
-		m_worldTeapot[i] = scalemat * rotmat* transmat;
-	}
 
 	//スケーリング
 	Matrix scalemat = Matrix::CreateScale(1.0f);
@@ -254,108 +155,31 @@ void Game::Update(DX::StepTimer const& timer)
 	//回転行列の合成
 	Matrix rotmat = rotmatz * rotmatx * rotmaty;
 	//ワールド行列の合成(SRT)このかけ順が安定
-	m_worldCaterpiller = rotmatx * scalemat * transmat;
-	//m_worldCaterpiller.Identity;
+	m_worldCaterpiller = rotmatx * scalemat * transmat;	
 
-	////内側
-	//for (int i = 0; i < 10; i++)
-	//{
-	//	Matrix rotmaty = Matrix::CreateRotationY(XMConvertToRadians(3.0f));
-	//	m_worldBall[i] *= rotmaty;
-	//}
-	////外側
-	//for (int i = 10; i < 20; i++)
-	//{
-	//	Matrix rotmaty = Matrix::CreateRotationY(XMConvertToRadians(-3.0f));
-	//	m_worldBall[i] *= rotmaty;
-	//}
-	////スケーリング
-	//Matrix scalemat = Matrix::CreateScale(2.0f);
-	////平行移動
-	//Matrix transmat = Matrix::CreateTranslation(0.0f, 10.0f, 0.0f);
-	////ロール
-	//Matrix rotmatz = Matrix::CreateRotationZ(XM_PIDIV4);
-	////ピッチ(仰角)
-	//Matrix rotmatx = Matrix::CreateRotationX(XM_PIDIV4);
-	////ヨー(方位角)
-	//Matrix rotmaty = Matrix::CreateRotationY(XM_PIDIV4);
-	//回転行列の合成
-	//Matrix rotmat = rotmatz * rotmatx * rotmaty;
-	//ワールド行列の合成(SRT)このかけ順が安定
-	//m_worldBall[10] = rotmatx * scalemat * transmat;
+	m_Player->Update();
 
-	//キーボードの状態取得
-	Keyboard::State kb = m_keyboard->GetState();
-
-	//aキーを押している間左旋回
-	if (kb.A)
+	for (std::vector<std::unique_ptr<Enemy>>::iterator it = m_Enemies.begin();
+		it != m_Enemies.end();
+		it++)
 	{
-		//自機のベクトル
-		float rot = 0.1;
-		//自機の亜票を移動
-		tank_rot += rot;
-	}
-	//dキーを押している間右旋回
-	if (kb.D)
-	{
-		//自機のベクトル
-		float rot = -0.1;
-		//自機の亜票を移動
-		tank_rot += rot;
-	}
+		Enemy* enemy = it->get();
+		enemy->Update();
 
-	//wキーを押している間全身
-	if (kb.W)
-	{
-		//自機のベクトル
-		Vector3 moveV(0.0f, 0.0f, -0.1f);
-		//移動ベクトルを自機の角度分回転
-		Matrix rotmat = Matrix::CreateRotationY(tank_rot);
-		moveV = Vector3::TransformNormal(moveV, rotmat);
-		//自機の亜票を移動
-		tank_pos += moveV;
+		//(*it)->Update();
 	}
-	//sキーを押している間交代
-	if (kb.S)
-	{
-		//自機のベクトル
-		Vector3 moveV(0.0f, 0.0f, 0.1f);
-		//移動ベクトルを自機の角度分回転
-		Matrix rotmat = Matrix::CreateRotationY(tank_rot);
-		moveV = Vector3::TransformNormal(moveV, rotmat);
-		//自機の亜票を移動
-		tank_pos += moveV;
-	}
-
-
-
-	{//自機のワールド行列を計算
-		//平行移動
-		Matrix transmat = Matrix::CreateTranslation(tank_pos);
-		//Y軸回転
-		Matrix rotmat = Matrix::CreateRotationY(tank_rot);
-		//平行移動行列をワールド座標にコピー
-		m_worldCaterpiller = rotmat * transmat;
-	}
-
-	//Vector3 tank_pos2(tank_pos.x, tank_pos.y + 2.5f, tank_pos.z + 5.0f);
 
 
 	{//自機に追従するカメラ
-
-		m_camera->SetTargetPos(tank_pos);
-		m_camera->SetTargetAngle(tank_rot);
-
 		//カメラ更新
-		//m_camera->SetEyePos(tank_pos);
-		//m_camera->SetRefPos(Vector3(0.0f, 0.0f, -100.0f));
 
 		m_camera->Update();
 		m_view = m_camera->GetView();
 		m_proj = m_camera->GetProjection();
 	}
 
-
+	m_ObjGround.Update();
+	m_ObjSkyDome.Update();
 }
 
 // Draws the scene.
@@ -383,58 +207,19 @@ void Game::Render()
 	//カリングしない(表裏どっちでも描画)
 	m_d3dContext->RSSetState(m_states->Wireframe());
 
-	////ビュー行列生成
-	//m_view = Matrix::CreateLookAt(
-	//	Vector3(0.f, 0.f, 20.f),	//カメラ視点
-	//	Vector3(0,0,0),			//カメラ参照点
-	//	Vector3(0,1,0));		//上方向ベクトル
-	//m_view = m_debugcamera->GetCameraMatrix();
+	//uint16_t indices[] =
+	//{
+	//	0,1,2,
+	//	2,1,3,
+	//};
 
-	////カメラの位置(視点座標)
-	//Vector3 eyepos(0.0f, 0.0f, 5.0f);
-	////カメラの見ている先(注視点/参照点/注目点)
-	//Vector3 refpos(0.0f, 0.0f, 0.0f);
-	////カメラの上方向ベクトル
-	//static float angle = 0.0f;
-	//angle += 0.1f;
-
-	//Vector3 upvec(cosf(angle), sinf(angle), 0);
-
-	//upvec.Normalize();
-
-	//m_view = Matrix::CreateLookAt(eyepos, refpos, upvec);
-
-	//垂直方向視野角
-	//float fovY = XMConvertToRadians(60.0f);
-	////アスペクト比(横縦の比率)
-	//float aspect = (float)m_outputWidth/m_outputHeight;
-	////ニアクリップ(手前の表示限界)
-	//float nearclip = 0.1f;
-	////ファークリップ(奥の表示限界)
-	//float farclip = 1000.0f;
-	//
-
-
-	////射影行列生成
-	//m_proj = Matrix::CreatePerspectiveFieldOfView(
-	//	fovY,			//視野角(上下方向)
-	//	aspect,	//アスペクト比
-	//	nearclip,	//ニアクリップ
-	//	farclip);	//ファークリップ
-
-	uint16_t indices[] =
-	{
-		0,1,2,
-		2,1,3,
-	};
-
-	VertexPositionNormal vertices[] =
-	{
-		{ Vector3(-1.0f,+1.0f,0.0f),Vector3(0.0f,0.0f,+1.0f) },
-		{ Vector3(-1.0f,-1.0f,0.0f),Vector3(0.0f,0.0f,+1.0f) },
-		{ Vector3(+1.0f,+1.0f,0.0f),Vector3(0.0f,0.0f,+1.0f) },
-		{ Vector3(+1.0f,-1.0f,0.0f),Vector3(0.0f,0.0f,+1.0f) },
-	};
+	//VertexPositionNormal vertices[] =
+	//{
+	//	{ Vector3(-1.0f,+1.0f,0.0f),Vector3(0.0f,0.0f,+1.0f) },
+	//	{ Vector3(-1.0f,-1.0f,0.0f),Vector3(0.0f,0.0f,+1.0f) },
+	//	{ Vector3(+1.0f,+1.0f,0.0f),Vector3(0.0f,0.0f,+1.0f) },
+	//	{ Vector3(+1.0f,-1.0f,0.0f),Vector3(0.0f,0.0f,+1.0f) },
+	//};
 
 	m_effect->SetView(m_view);
 	m_effect->SetProjection(m_proj);
@@ -444,49 +229,27 @@ void Game::Render()
 	m_d3dContext->IASetInputLayout(m_inputLayout.Get());
 
 	//モデルの描画
-	m_modelSkyDome->Draw(m_d3dContext.Get(), *m_states, Matrix::Identity, m_view, m_proj);
-	m_modelGround->Draw(m_d3dContext.Get(), *m_states, Matrix::Identity, m_view, m_proj);
-	m_modelCaterpiller->Draw(m_d3dContext.Get(), *m_states, m_worldCaterpiller, m_view, m_proj);
+	//空　
+	m_ObjSkyDome.Draw();
+	//地面
+	m_ObjGround.Draw();
 
-	//for (int i = 0; i < 20; i++)
-	//{
-	//	m_modelTeapot[i]->Draw(m_d3dContext.Get(), *m_states, m_worldTeapot[i], m_view, m_proj);
-	//}
+	//プレイヤーの描画
+	m_Player->Draw();
 
-	//for (int i = 0; i < 20; i++)
-	//{
-		//m_modelBall[i]->Draw(m_d3dContext.Get(), *m_states, m_worldBall[i], m_view, m_proj);
-	//}
-
-	//for (int i = 0; i < 10000; i++)
-	//{
-	//	m_modelGround2[i]->Draw(m_d3dContext.Get(), *m_states, m_worldBall[i], m_view, m_proj);
-	//}
-	
-	//m_modelBall[0]->Draw(m_d3dContext.Get(), *m_states, m_worldBall[0], m_view, m_proj);
-
+	//敵の描画
+	for (std::vector<std::unique_ptr<Enemy>>::iterator it = m_Enemies.begin();
+		it != m_Enemies.end();
+		it++)
+	{
+		(*it)->Draw();
+	}
 
 	//描画をする
 	m_batch->Begin();
-	VertexPositionColor v1(Vector3(0.0f, 0.5f, 0.5f), Colors::Yellow);
-	VertexPositionColor v2(Vector3(0.5f, -0.5f, 0.5f), Colors::Yellow);
-	VertexPositionColor v3(Vector3(-0.5f, -0.5f, 0.5f), Colors::Yellow);
 
-	//VertexPositionColor v1(Vector3(400.f, 150.f, 0.f), Colors::Cyan);
-	//VertexPositionColor v2(Vector3(600.f, 450.f, 0.f), Colors::Magenta);
-	//VertexPositionColor v3(Vector3(200.f, 450.f, 0.f), Colors::Yellow);
+	//m_batch->DrawIndexed(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST, indices, 6, vertices, 4);
 
-//	m_batch->DrawTriangle(v1, v2, v3);
-
-	m_batch->DrawIndexed(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST, indices, 6, vertices, 4);
-	//m_batch->DrawLine(
-	//	VertexPositionColor(
-	//		SimpleMath::Vector3(0,0,0),
-	//		SimpleMath::Color(1,1,1)), 
-	//	VertexPositionColor(
-	//		SimpleMath::Vector3(800, 600, 0),
-	//		SimpleMath::Color(0, 0, 0))
-	//);
 	m_batch->End();
 
 	

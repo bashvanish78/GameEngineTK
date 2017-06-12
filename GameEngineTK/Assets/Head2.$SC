@@ -1,0 +1,24 @@
+/*							Parts Assembler
+                                  Version 2.04.080624(:
+Parts: 
+	AN\AN05.suf
+Info:
+	DisplayOffset: (   0.000   0.000   0.000 )
+	DisplayScale: 0.125000000000
+	MeshFlag: 1
+	MeshSpacing: 200
+	ShowStatus: 1
+	GridFlag: 1
+	GridSpacing: 50
+	RotSpacing: 10
+	SelectedOnly: 0
+*/
+fram
+{
+	light pal( rgb ( 1.00 1.00 1.00 ) -45  54  70 )
+	{	mov ( 2249.32 -191.645 -731.475 ) eye deg( 60 ) }
+	{	mov ( 622.517 -53.0391 -103.554 ) target }
+{	mov ( 0 0 0 ) rotz ( 0 ) roty ( 0 ) rotx ( 0 )
+	scal ( 1 1 1 ) obj an05 /* "AN\AN05.suf" */
+}
+}

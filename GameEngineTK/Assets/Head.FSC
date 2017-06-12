@@ -1,0 +1,24 @@
+/*							Parts Assembler
+                                  Version 2.04.080624(:
+Parts: 
+	O2\O212.suf
+Info:
+	DisplayOffset: (   0.000   0.000   0.000 )
+	DisplayScale: 0.353553390593
+	MeshFlag: 1
+	MeshSpacing: 200
+	ShowStatus: 1
+	GridFlag: 1
+	GridSpacing: 50
+	RotSpacing: 10
+	SelectedOnly: 0
+*/
+fram
+{
+	light pal( rgb ( 1.00 1.00 1.00 )  55  43 -70 )
+	{	mov ( -8.311 -1850.56 78.8161 ) eye deg( 60 ) }
+	{	mov ( 173.782 -339.161 0 ) target }
+{	mov ( 0 0 0 ) rotz ( 180 ) roty ( 0 ) rotx ( 0 )
+	scal ( 1 1 1 ) obj O212 /* "O2\O212.suf" */
+}
+}

@@ -14,6 +14,10 @@
 #include <SimpleMath.h>
 #include <Model.h>
 #include <Keyboard.h>
+#include "Obj3d.h"
+#include <vector>
+#include "Player.h"
+#include "Enemy.h"
 
 
 // A basic game implementation that creates a D3D11 device and
@@ -21,6 +25,20 @@
 class Game
 {
 public:
+
+	////自機パーツ
+	//enum PLAYER_PARTS
+	//{
+	//	PLAYER_PARTS_TANK,	//タンク
+	//	PLAYER_PARTS_ENGINE,//エンジン
+	//	PLAYER_PARTS_HEAD,	//頭1
+	//	PLAYER_PARTS_HEAD2,	//頭2
+	//	PLAYER_PARTS_CANNON,//キャノン1
+	//	PLAYER_PARTS_CANNON2,//キャノン2
+	//	PLAYER_PARTS_BULLET,//弾
+
+	//	PLAYER_PARTS_NUM
+	//};
 
     Game();
 
@@ -95,36 +113,24 @@ private:
 	//エフェクトファクトリ
 	std::unique_ptr<DirectX::EffectFactory> m_factory;
 	//天球モデル
-	std::unique_ptr<DirectX::Model> m_modelSkyDome;
+	Obj3d m_ObjSkyDome;
 
 	//モデル地面
-	std::unique_ptr<DirectX::Model> m_modelGround;
-
-	//モデルティーポット
-	std::unique_ptr<DirectX::Model> m_modelTeapot[20];
+	Obj3d m_ObjGround;
 
 	//キャタピラのモデル
 	std::unique_ptr<DirectX::Model> m_modelCaterpiller;
-
-	//モデル地面
-	//std::unique_ptr<DirectX::Model> m_modelGround2[10000];
-
-	//モデル球
-	//std::unique_ptr<DirectX::Model> m_modelBall[20];
-
-	//球のワールド行列
-	//DirectX::SimpleMath::Matrix m_worldBall[20];
+	//キャタピラのモデル
+	std::unique_ptr<DirectX::Model> m_modelCaterpiller2;
 
 	//ティーポットのワールド行列
 	DirectX::SimpleMath::Matrix m_worldTeapot[20];
 
 	//キャタピラのワールド行列
 	DirectX::SimpleMath::Matrix m_worldCaterpiller;
+	//キャタピラのワールド行列
+	DirectX::SimpleMath::Matrix m_worldCaterpiller2;
 
-	//地面2のワールド行列
-	//DirectX::SimpleMath::Matrix m_worldGround2[10000];
-
-	float m_dir[20];
 	float m_distance[20];
 	int m_count;
 
@@ -139,7 +145,17 @@ private:
 	DirectX::SimpleMath::Vector3 Lerp(DirectX::SimpleMath::Vector3 startPosition, DirectX::SimpleMath::Vector3 targetPosition, float t, float v);*/
 	//float linearity(float time);
 
+	//自機パーツ1(親パーツ)
+	//Obj3d m_ObjPlayer1;
+	//自機パーツ2(子パーツ)
+	//Obj3d m_ObjPlayer2;
+
+
+
 	//カメラのオブジェクト
 	std::unique_ptr<FollowCamera>m_camera;
 
+	std::unique_ptr<Player>m_Player;
+
+	std::vector<std::unique_ptr<Enemy>>m_Enemies;
 };
